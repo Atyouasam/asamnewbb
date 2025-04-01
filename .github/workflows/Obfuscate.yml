@@ -13,24 +13,19 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # 新增超时限制防止卡死
-    timeout-minutes: 10
 
     steps:
       - name: Check out the code
-        uses: actions/checkout@dcd71f62 # v4.1.0 固定哈希值
-        with:
-          fetch-depth: 1  # 仅克隆最新提交
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@60edb5d # v4.0.0 固定哈希值
+        uses: actions/setup-node@v4
         with:
-          node-version: "20"  # 固定LTS版本
-          cache: npm  # 启用内置缓存
+          node-version: "latest"
 
       - name: Install dependencies
         run: |
-          npm install -g javascript-obfuscator@4.0.0 --prefer-offline --no-audit
+          npm install -g javascript-obfuscator
 
       - name: Clone BPB workjs
         run: |
