@@ -5,9 +5,7 @@ on:
     branches:
       - main
   schedule:
-        # Runs everyday at 1:00 AM
-        - cron: "0 17 * * *"
-
+    - cron: "0 1 * * *"
 
 permissions:
   contents: write
@@ -15,19 +13,24 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # 新增超时限制防止卡死
+    timeout-minutes: 10
 
     steps:
       - name: Check out the code
-        uses: actions/checkout@v4
+        uses: actions/checkout@dcd71f62 # v4.1.0 固定哈希值
+        with:
+          fetch-depth: 1  # 仅克隆最新提交
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@60edb5d # v4.0.0 固定哈希值
         with:
-          node-version: "latest"
+          node-version: "20"  # 固定LTS版本
+          cache: npm  # 启用内置缓存
 
       - name: Install dependencies
         run: |
-          npm install -g javascript-obfuscator
+          npm install -g javascript-obfuscator@4.0.0 --prefer-offline --no-audit
 
       - name: Clone BPB workjs
         run: |
@@ -37,20 +40,20 @@ jobs:
         run: |
           javascript-obfuscator origin.js --output _worker.js \
           --compact true \
-          --control-flow-flattening false \
-          --control-flow-flattening-threshold 0.5 \
-          --dead-code-injection false \
-          --dead-code-injection-threshold 0.5 \
+          --control-flow-flattening true \
+          --control-flow-flattening-threshold 0.8 \  # 从1降为0.8
+          --dead-code-injection true \
+          --dead-code-injection-threshold 0.8 \  # 从1降为0.8
           --identifier-names-generator hexadecimal \
           --rename-globals true \
-          --string-array false \
+          --string-array true \
           --string-array-encoding 'rc4' \
-          --string-array-threshold 0.5 \
+          --string-array-threshold 0.85 \  # 从1降为0.85
           --transform-object-keys true \
           --unicode-escape-sequence true
 
       - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@5e7b231 # v5.0.1 固定哈希值
         with:
           branch: main
           commit_message: ':arrow_up: update latest bpb panel'
